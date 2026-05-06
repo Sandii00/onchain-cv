@@ -44,12 +44,8 @@ export default function AppShell() {
 
     if (connected) {
       setState("loading");
-      minDone.current = false;
-      // Minimal delay — just enough for animation, not artificial waiting
-      timer.current = setTimeout(() => {
-        minDone.current = true;
-        if (!dataLoading) setState("dashboard");
-      }, 800);
+      minDone.current = true;
+      if (!dataLoading) setState("dashboard");
     } else {
       if (!isInsideWalletBrowser()) setState("landing");
       if (timer.current) clearTimeout(timer.current);
