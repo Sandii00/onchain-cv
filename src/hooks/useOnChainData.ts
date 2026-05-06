@@ -62,16 +62,11 @@ export function useOnChainData(publicKey: PublicKey | null) {
     const apiKey = process.env.NEXT_PUBLIC_HELIUS_API_KEY;
 
     if (!apiKey) {
-      // No API key — use mock data after simulated delay
-      setLoading(true);
-      const t = setTimeout(() => {
-        setData(MOCK_DATA);
-        setLoading(false);
-      }, 2800);
-      return () => clearTimeout(t);
+      setData(MOCK_DATA);
+      return;
     }
 
-    // Real Helius fetch
+    // Real Helius fetch — parallel requests, capped at 100 sigs
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -79,67 +74,64 @@ export function useOnChainData(publicKey: PublicKey | null) {
         const address = publicKey.toBase58();
         const rpcUrl = `https://mainnet.helius-rpc.com/?api-key=${apiKey}`;
 
-        // Get transaction signatures (up to 1000)
-        const sigRes = await fetch(rpcUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "getSignaturesForAddress",
-            params: [address, { limit: 1000 }],
+        // Fire both requests in parallel
+        const [sigRes, enhancedRes] = await Promise.all([
+          fetch(rpcUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              jsonrpc: "2.0",
+              id: 1,
+              method: "getSignaturesForAddress",
+              params: [address, { limit: 100 }],
+            }),
           }),
-        });
-        const sigJson = await sigRes.json();
+          fetch(
+            `https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${apiKey}&limit=100`
+          ),
+        ]);
+
+        const [sigJson, enhanced] = await Promise.all([
+          sigRes.json(),
+          enhancedRes.json(),
+        ]);
+
         const sigs: { blockTime: number; signature: string }[] =
           sigJson.result ?? [];
-
         const totalTxs = sigs.length;
         const earliest = sigs.length
-          ? new Date(
-              Math.min(...sigs.map((s) => s.blockTime * 1000))
-            ).getFullYear().toString()
+          ? new Date(Math.min(...sigs.map((s) => s.blockTime * 1000)))
+              .getFullYear()
+              .toString()
           : "2021";
 
-        // Parse enhanced transactions for program data
         let topPrograms: { name: string; count: number }[] = [];
         let defiTxs = Math.floor(totalTxs * 0.45);
         let nftTxs = Math.floor(totalTxs * 0.22);
         let programsInteracted = Math.min(67, Math.floor(totalTxs / 28));
 
-        try {
-          const enhancedRes = await fetch(
-            `https://api.helius.xyz/v0/addresses/${address}/transactions?api-key=${apiKey}&limit=100`
-          );
-          const enhanced = await enhancedRes.json();
+        if (Array.isArray(enhanced)) {
+          const programCounts: Record<string, number> = {};
+          enhanced.forEach((tx: { source?: string; type?: string }) => {
+            const src = tx.source ?? "Unknown";
+            programCounts[src] = (programCounts[src] ?? 0) + 1;
+          });
+          topPrograms = Object.entries(programCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 4)
+            .map(([name, count]) => ({ name, count }));
 
-          if (Array.isArray(enhanced)) {
-            const programCounts: Record<string, number> = {};
-            enhanced.forEach((tx: { source?: string; type?: string }) => {
-              const src = tx.source ?? "Unknown";
-              programCounts[src] = (programCounts[src] ?? 0) + 1;
-            });
-            topPrograms = Object.entries(programCounts)
-              .sort((a, b) => b[1] - a[1])
-              .slice(0, 4)
-              .map(([name, count]) => ({ name, count }));
-
-            defiTxs = enhanced.filter(
-              (tx: { type?: string }) =>
-                tx.type === "SWAP" || tx.type === "ADD_LIQUIDITY"
-            ).length;
-            nftTxs = enhanced.filter(
-              (tx: { type?: string }) =>
-                tx.type === "NFT_SALE" || tx.type === "NFT_MINT"
-            ).length;
-          }
-        } catch {
-          // Enhanced parse failed — use estimates
+          defiTxs = enhanced.filter(
+            (tx: { type?: string }) =>
+              tx.type === "SWAP" || tx.type === "ADD_LIQUIDITY"
+          ).length;
+          nftTxs = enhanced.filter(
+            (tx: { type?: string }) =>
+              tx.type === "NFT_SALE" || tx.type === "NFT_MINT"
+          ).length;
         }
 
-        if (!topPrograms.length) {
-          topPrograms = MOCK_DATA.topPrograms;
-        }
+        if (!topPrograms.length) topPrograms = MOCK_DATA.topPrograms;
 
         const tier = classifyTier(totalTxs);
 

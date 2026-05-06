@@ -29,12 +29,15 @@ function isInsideWalletBrowser(): boolean {
 export default function AppShell() {
   const { connected, connecting, publicKey } = useWallet();
   const { loading: dataLoading } = useOnChainData(connected ? publicKey : null);
-  // If inside a wallet browser, start at loading (auto-connect will fire)
-  const [state, setState] = useState<State>(() =>
-    isInsideWalletBrowser() ? "loading" : "landing"
-  );
+  // Always "landing" on server — no SSR mismatch
+  const [state, setState] = useState<State>("landing");
   const minDone = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Client-only: if inside wallet browser, skip landing (auto-connect fires)
+  useEffect(() => {
+    if (isInsideWalletBrowser()) setState("loading");
+  }, []);
 
   useEffect(() => {
     if (connecting) { setState("loading"); return; }
@@ -42,12 +45,12 @@ export default function AppShell() {
     if (connected) {
       setState("loading");
       minDone.current = false;
+      // Minimal delay — just enough for animation, not artificial waiting
       timer.current = setTimeout(() => {
         minDone.current = true;
         if (!dataLoading) setState("dashboard");
-      }, 2800);
+      }, 800);
     } else {
-      // Only fall back to landing if NOT in a wallet browser
       if (!isInsideWalletBrowser()) setState("landing");
       if (timer.current) clearTimeout(timer.current);
     }
