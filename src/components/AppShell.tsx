@@ -1,7 +1,7 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOnChainData, fetchOnChainData, readCache } from "@/hooks/useOnChainData";
 import LandingPage from "./LandingPage";
 import LoadingState from "./LoadingState";
@@ -19,19 +19,48 @@ function isInsideWalletBrowser(): boolean {
     w.backpack?.solana     ||
     w.solflare?.isSolflare ||
     w.exodus?.solana       ||
-    w.coinbaseSolana       ||
-    w.solana?.isConnected !== undefined
+    w.coinbaseSolana
   );
 }
 
 export default function AppShell() {
-  const { connected, connecting, publicKey } = useWallet();
+  const { connected, connecting, publicKey, connect, select, wallets } = useWallet();
   const { data, stale } = useOnChainData(connected ? publicKey : null);
   const [state, setState] = useState<State>("landing");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Client-only: skip landing inside wallet browsers
+  // Client-only: inside wallet browser — try to connect immediately
   useEffect(() => {
-    if (isInsideWalletBrowser()) setState("loading");
+    if (!isInsideWalletBrowser()) return;
+
+    // Already connected — go straight to dashboard
+    if (connected) { setState("dashboard"); return; }
+
+    setState("loading");
+
+    // Try to trigger connect via the detected wallet
+    const tryConnect = async () => {
+      try {
+        const w = window as any;
+        // Directly call the injected provider's connect
+        const provider = w.phantom?.solana || w.solana || w.backpack?.solana || w.solflare;
+        if (provider?.connect) {
+          await provider.connect({ onlyIfTrusted: true });
+        }
+      } catch {
+        // onlyIfTrusted fails if not previously approved — that's fine, autoConnect handles it
+      }
+    };
+
+    tryConnect();
+
+    // Hard timeout: if still on loading after 4s, go to dashboard anyway
+    // User can connect manually from there
+    timeoutRef.current = setTimeout(() => {
+      setState(s => s === "loading" ? "dashboard" : s);
+    }, 4000);
+
+    return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
   }, []);
 
   // Pre-fetch the moment publicKey appears (before connected=true)
@@ -46,8 +75,7 @@ export default function AppShell() {
     if (connecting) { setState("loading"); return; }
 
     if (connected) {
-      // Go straight to dashboard — hook shows instant data immediately
-      // No loading screen needed
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setState("dashboard");
     } else {
       if (!isInsideWalletBrowser()) setState("landing");
