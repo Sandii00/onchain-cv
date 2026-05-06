@@ -26,9 +26,7 @@ function isInsideWalletBrowser(): boolean {
 
 export default function AppShell() {
   const { connected, connecting, publicKey } = useWallet();
-  const { data, loading: dataLoading, stale } = useOnChainData(
-    connected ? publicKey : null
-  );
+  const { data, stale } = useOnChainData(connected ? publicKey : null);
   const [state, setState] = useState<State>("landing");
 
   // Client-only: skip landing inside wallet browsers
@@ -36,15 +34,11 @@ export default function AppShell() {
     if (isInsideWalletBrowser()) setState("loading");
   }, []);
 
-  // Pre-fetch the MOMENT publicKey is available — before connected=true
-  // This gives us a head start of ~200-400ms
+  // Pre-fetch the moment publicKey appears (before connected=true)
   useEffect(() => {
     if (publicKey) {
       const address = publicKey.toBase58();
-      // Only pre-fetch if not already cached
-      if (!readCache(address)) {
-        fetchOnChainData(address).catch(() => {});
-      }
+      if (!readCache(address)) fetchOnChainData(address).catch(() => {});
     }
   }, [publicKey?.toBase58()]);
 
@@ -52,23 +46,13 @@ export default function AppShell() {
     if (connecting) { setState("loading"); return; }
 
     if (connected) {
-      // Already have data (cache hit) → skip loading screen entirely
-      if (data) {
-        setState("dashboard");
-      } else {
-        setState("loading");
-      }
+      // Go straight to dashboard — hook shows instant data immediately
+      // No loading screen needed
+      setState("dashboard");
     } else {
       if (!isInsideWalletBrowser()) setState("landing");
     }
-  }, [connected, connecting, data]);
-
-  // Transition to dashboard as soon as data arrives
-  useEffect(() => {
-    if (connected && !dataLoading && data && state === "loading") {
-      setState("dashboard");
-    }
-  }, [dataLoading, data, connected, state]);
+  }, [connected, connecting]);
 
   const variants = {
     initial: { opacity: 0, y: 10 },

@@ -16,10 +16,10 @@ function FI({ d = 0, children }: { d?: number; children: React.ReactNode }) {
   );
 }
 
-export default function Dashboard({ stale }: { stale?: boolean }) {
+export default function Dashboard({ stale: staleProp }: { stale?: boolean }) {
   const { disconnect, publicKey } = useWallet();
-  // Re-uses the same hook — de-duplicated fetch, will return cached result instantly
-  const { data, loading } = useOnChainData(publicKey);
+  const { data, loading, stale } = useOnChainData(publicKey);
+  const isInstant = data?.isInstant ?? false;
   const addr = publicKey?.toBase58() ?? "";
 
   return (
@@ -75,8 +75,8 @@ export default function Dashboard({ stale }: { stale?: boolean }) {
               <div key={s.l} className="stat-tile">
                 <p style={{ fontSize: "11px", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>{s.l}</p>
                 <p style={{ fontSize: "20px", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.03em" }}>
-                  {loading || !s.v
-                    ? <span style={{ display: "inline-block", width: 32, height: 20, borderRadius: 4, background: "var(--border)" }} />
+                  {loading || isInstant || !s.v
+                    ? <span style={{ display: "inline-block", width: 32, height: 20, borderRadius: 4, background: "var(--border)", animation: "pulse 1.5s ease-in-out infinite" }} />
                     : s.v.toLocaleString()}
                 </p>
               </div>

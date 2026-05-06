@@ -13,6 +13,7 @@ export interface OnChainData {
   nftTxs: number;
   programsInteracted: number;
   solBalance?: number;
+  isInstant?: boolean; // true = shown instantly from wallet, helius loading in bg
 }
 
 export const MOCK_DATA: OnChainData = {
@@ -29,6 +30,7 @@ export const MOCK_DATA: OnChainData = {
   defiTxs: 823,
   nftTxs: 412,
   programsInteracted: 67,
+  solBalance: 0,
 };
 
 const LS_PREFIX = "oncv_cache_";
@@ -38,7 +40,7 @@ export function readCache(address: string): OnChainData | null {
     const raw = localStorage.getItem(LS_PREFIX + address);
     if (!raw) return null;
     const { data, ts } = JSON.parse(raw);
-    if (Date.now() - ts < 60 * 60 * 1000) return data; // 1hr stale-while-revalidate
+    if (Date.now() - ts < 60 * 60 * 1000) return data;
     return null;
   } catch { return null; }
 }
@@ -49,11 +51,39 @@ export function writeCache(address: string, data: OnChainData) {
   } catch {}
 }
 
-// Global in-flight promise — prevents duplicate fetches across components
+// Get SOL balance directly from the injected wallet — instant, no API call
+function getWalletSOLBalance(): number | null {
+  try {
+    const w = window as any;
+    const provider = w.solana || w.phantom?.solana || w.backpack?.solana;
+    if (provider?.account?.lamports) return provider.account.lamports / 1e9;
+    // Some wallets expose it differently
+    if (provider?.wallet?.account?.lamports) return provider.wallet.account.lamports / 1e9;
+    return null;
+  } catch { return null; }
+}
+
+// Build instant placeholder data from just the public key + optional sol balance
+// Shows immediately while Helius loads in background
+function buildInstantData(solBalance: number | null): OnChainData {
+  return {
+    totalTxs: 0,
+    activeSince: new Date().getFullYear().toString(),
+    topPrograms: [],
+    tier: "Active",
+    tierColor: "#6B7280",
+    defiTxs: 0,
+    nftTxs: 0,
+    programsInteracted: 0,
+    solBalance: solBalance ?? 0,
+    isInstant: true,
+  };
+}
+
+// Global dedup — same address = same promise
 const inFlight = new Map<string, Promise<OnChainData>>();
 
 export async function fetchOnChainData(address: string): Promise<OnChainData> {
-  // De-duplicate: if already fetching this address, return same promise
   if (inFlight.has(address)) return inFlight.get(address)!;
 
   const promise = (async () => {
@@ -62,7 +92,8 @@ export async function fetchOnChainData(address: string): Promise<OnChainData> {
 
     const res = await fetch(`/api/onchain/${address}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json() as Promise<OnChainData>;
+    const data = await res.json() as OnChainData;
+    return { ...data, isInstant: false };
   })().finally(() => inFlight.delete(address));
 
   inFlight.set(address, promise);
@@ -80,13 +111,11 @@ export function useOnChainData(publicKey: PublicKey | null) {
     if (!publicKey) { setData(null); setStale(false); return; }
 
     const address = publicKey.toBase58();
+    if (fetchedFor.current === address && data && !data.isInstant) return;
 
-    // Don't re-fetch if we already have fresh data for this address
-    if (fetchedFor.current === address && data) return;
-
-    // Show localStorage cache instantly (optimistic UI)
+    // 1. Check localStorage cache — show instantly
     const cached = readCache(address);
-    if (cached) {
+    if (cached && !cached.isInstant) {
       setData(cached);
       setStale(true);
       setLoading(false);
@@ -100,18 +129,24 @@ export function useOnChainData(publicKey: PublicKey | null) {
       return;
     }
 
-    // No cache — full load
-    setLoading(true);
+    // 2. No cache — show instant wallet data immediately, fetch Helius in bg
+    const instantSol = getWalletSOLBalance();
+    setData(buildInstantData(instantSol));
+    setLoading(false); // Don't block on loading screen
+    setStale(true);
+
+    // Fetch real data in background
     fetchOnChainData(address).then(fresh => {
       writeCache(address, fresh);
       setData(fresh);
-      setLoading(false);
+      setStale(false);
       fetchedFor.current = address;
     }).catch(() => {
-      setData(MOCK_DATA);
-      setLoading(false);
-      setError("Could not load data");
+      // Keep showing instant data, just stop the stale indicator
+      setStale(false);
+      setError("Could not load full metrics");
     });
+
   }, [publicKey?.toBase58()]);
 
   return { data, loading, stale, error };
