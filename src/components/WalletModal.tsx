@@ -17,13 +17,26 @@ const MOBILE_DEEPLINKS: Record<string, (url: string) => string> = {
   Exodus:   (url) => `https://exodus.com/solana/browse/${encodeURIComponent(url)}`,
 };
 
+function getHostWallet(): string | null {
+  if (typeof window === "undefined") return null;
+  const w = window as any;
+  if (w.solana?.isPhantom || w.phantom?.solana) return "Phantom";
+  if (w.backpack?.solana) return "Backpack";
+  if (w.solflare?.isSolflare) return "Solflare";
+  if (w.exodus?.solana) return "Exodus";
+  if (w.coinbaseSolana) return "Coinbase Wallet";
+  return null;
+}
+
 export default function WalletModal({ open, onClose }: Props) {
   const { wallets, select, connect, connecting } = useWallet();
   const [connecting_to, setConnectingTo] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [hostWallet, setHostWallet] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMobile(/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent));
+    setHostWallet(getHostWallet());
   }, []);
 
   useEffect(() => {
@@ -33,9 +46,26 @@ export default function WalletModal({ open, onClose }: Props) {
   const handleWallet = async (name: string) => {
     setConnectingTo(name);
 
-    // On mobile — use deep link if available
-    // Use window.open(_blank) to avoid Chrome's iframe cross-origin deep-link block
-    if (isMobile && MOBILE_DEEPLINKS[name]) {
+    // Inside a wallet browser — the host wallet is always available, connect directly
+    if (hostWallet === name) {
+      const wallet = wallets.find(w => w.adapter.name === name);
+      if (wallet) {
+        try {
+          select(wallet.adapter.name);
+          await new Promise(r => setTimeout(r, 80));
+          await connect();
+          onClose();
+          return;
+        } catch (err: any) {
+          console.warn("Connect failed:", err?.message);
+          setConnectingTo(null);
+          return;
+        }
+      }
+    }
+
+    // On mobile (non-wallet browser) — use deep link
+    if (isMobile && !hostWallet && MOBILE_DEEPLINKS[name]) {
       const currentUrl = window.location.href;
       window.open(MOBILE_DEEPLINKS[name](currentUrl), "_blank", "noopener,noreferrer");
       onClose();
@@ -77,7 +107,13 @@ export default function WalletModal({ open, onClose }: Props) {
     { adapter: { name: "Coinbase", url: "https://coinbase.com",   icon: "", readyState: "NotDetected" } },
   ];
 
-  const displayWallets = wallets.length > 0 ? wallets : fallbackWallets;
+  const rawList = wallets.length > 0 ? wallets : fallbackWallets;
+  // Sort: host wallet always first
+  const displayWallets = hostWallet
+    ? [...rawList].sort((a, b) =>
+        a.adapter.name === hostWallet ? -1 : b.adapter.name === hostWallet ? 1 : 0
+      )
+    : rawList;
 
   return (
     <AnimatePresence>
@@ -119,7 +155,7 @@ export default function WalletModal({ open, onClose }: Props) {
                 <div>
                   <h3 className="serif" style={{ fontSize: "1.2rem", color: "var(--text)" }}>Connect wallet</h3>
                   <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>
-                    {isMobile ? "Opens your wallet app" : "Select your Solana wallet"}
+                    {hostWallet ? `Detected: ${hostWallet}` : isMobile ? "Opens your wallet app" : "Select your Solana wallet"}
                   </p>
                 </div>
                 <button onClick={onClose} style={{
@@ -174,7 +210,8 @@ export default function WalletModal({ open, onClose }: Props) {
                         <p style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 2 }}>{name}</p>
                         <p style={{ fontSize: 12, color: "var(--muted)" }}>
                           {isConnecting ? "Connecting…" :
-                           isMobile && MOBILE_DEEPLINKS[name] ? "Open in app" :
+                           hostWallet === name ? "Your wallet — tap to connect" :
+                           isMobile && !hostWallet && MOBILE_DEEPLINKS[name] ? "Open in app" :
                            isInstalled ? "Detected" :
                            "Install extension"}
                         </p>

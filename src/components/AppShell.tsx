@@ -10,10 +10,29 @@ import { AnimatePresence, motion } from "framer-motion";
 
 type State = "landing" | "loading" | "dashboard";
 
+// Detect if running inside a wallet's in-app browser
+function isInsideWalletBrowser(): boolean {
+  if (typeof window === "undefined") return false;
+  const w = window as any;
+  return !!(
+    w.solana?.isPhantom ||
+    w.phantom?.solana ||
+    w.backpack?.solana ||
+    w.solflare?.isSolflare ||
+    w.exodus?.solana ||
+    w.coinbaseSolana ||
+    // generic: any injected Solana provider
+    w.solana?.isConnected !== undefined
+  );
+}
+
 export default function AppShell() {
   const { connected, connecting, publicKey } = useWallet();
   const { loading: dataLoading } = useOnChainData(connected ? publicKey : null);
-  const [state, setState] = useState<State>("landing");
+  // If inside a wallet browser, start at loading (auto-connect will fire)
+  const [state, setState] = useState<State>(() =>
+    isInsideWalletBrowser() ? "loading" : "landing"
+  );
   const minDone = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -28,7 +47,8 @@ export default function AppShell() {
         if (!dataLoading) setState("dashboard");
       }, 2800);
     } else {
-      setState("landing");
+      // Only fall back to landing if NOT in a wallet browser
+      if (!isInsideWalletBrowser()) setState("landing");
       if (timer.current) clearTimeout(timer.current);
     }
     return () => { if (timer.current) clearTimeout(timer.current); };
