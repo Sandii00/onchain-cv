@@ -6,10 +6,11 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import {
   PhantomWalletAdapter,
   SolflareWalletAdapter,
-  TorusWalletAdapter,
   CoinbaseWalletAdapter,
   TrustWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
+import { BackpackWalletAdapter } from "@solana/wallet-adapter-backpack";
+import { ExodusWalletAdapter } from "@solana/wallet-adapter-exodus";
 import { clusterApiUrl } from "@solana/web3.js";
 
 interface Props { children: ReactNode; }
@@ -20,7 +21,8 @@ const SolanaWalletProvider: FC<Props> = ({ children }) => {
   const wallets = useMemo(() => [
     new PhantomWalletAdapter(),
     new SolflareWalletAdapter(),
-    new TorusWalletAdapter(),
+    new BackpackWalletAdapter(),
+    new ExodusWalletAdapter(),
     new CoinbaseWalletAdapter(),
     new TrustWalletAdapter(),
   ], []);

@@ -13,14 +13,8 @@ interface Props {
 const MOBILE_DEEPLINKS: Record<string, (url: string) => string> = {
   Phantom:  (url) => `https://phantom.app/ul/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
   Solflare: (url) => `https://solflare.com/ul/v1/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
-};
-
-const WALLET_ICONS: Record<string, string> = {
-  Phantom:  "https://raw.githubusercontent.com/solana-labs/wallet-adapter/master/packages/wallets/phantom/icon.png",
-  Solflare: "https://raw.githubusercontent.com/solana-labs/wallet-adapter/master/packages/wallets/solflare/icon.svg",
-  Torus:    "https://raw.githubusercontent.com/solana-labs/wallet-adapter/master/packages/wallets/torus/icon.svg",
-  Coinbase: "https://raw.githubusercontent.com/solana-labs/wallet-adapter/master/packages/wallets/coinbase/icon.svg",
-  Trust:    "https://raw.githubusercontent.com/solana-labs/wallet-adapter/master/packages/wallets/trust/icon.svg",
+  Backpack: (url) => `https://backpack.app/ul/browse/${encodeURIComponent(url)}?ref=${encodeURIComponent(url)}`,
+  Exodus:   (url) => `https://exodus.com/solana/browse/${encodeURIComponent(url)}`,
 };
 
 export default function WalletModal({ open, onClose }: Props) {
@@ -39,7 +33,7 @@ export default function WalletModal({ open, onClose }: Props) {
   const handleWallet = async (name: string) => {
     setConnectingTo(name);
 
-    // On mobile — use deep link for Phantom / Solflare
+    // On mobile — use deep link if available
     if (isMobile && MOBILE_DEEPLINKS[name]) {
       const currentUrl = window.location.href;
       window.location.href = MOBILE_DEEPLINKS[name](currentUrl);
@@ -47,7 +41,6 @@ export default function WalletModal({ open, onClose }: Props) {
       return;
     }
 
-    // Check if extension is installed
     const wallet = wallets.find(w => w.adapter.name === name);
     if (!wallet) {
       setConnectingTo(null);
@@ -65,7 +58,7 @@ export default function WalletModal({ open, onClose }: Props) {
 
     try {
       select(wallet.adapter.name);
-      await new Promise(r => setTimeout(r, 80)); // let select settle
+      await new Promise(r => setTimeout(r, 80));
       await connect();
       onClose();
     } catch (err: any) {
@@ -74,13 +67,16 @@ export default function WalletModal({ open, onClose }: Props) {
     }
   };
 
-  const displayWallets = wallets.length > 0
-    ? wallets
-    : [
-        { adapter: { name: "Phantom",  url: "https://phantom.app",  readyState: "NotDetected" } },
-        { adapter: { name: "Solflare", url: "https://solflare.com", readyState: "NotDetected" } },
-        { adapter: { name: "Torus",    url: "https://tor.us",       readyState: "NotDetected" } },
-      ];
+  // Fallback list if wallet-adapter hasn't loaded yet
+  const fallbackWallets = [
+    { adapter: { name: "Phantom",  url: "https://phantom.app",    icon: "", readyState: "NotDetected" } },
+    { adapter: { name: "Solflare", url: "https://solflare.com",   icon: "", readyState: "NotDetected" } },
+    { adapter: { name: "Backpack", url: "https://backpack.app",   icon: "", readyState: "NotDetected" } },
+    { adapter: { name: "Exodus",   url: "https://exodus.com",     icon: "", readyState: "NotDetected" } },
+    { adapter: { name: "Coinbase", url: "https://coinbase.com",   icon: "", readyState: "NotDetected" } },
+  ];
+
+  const displayWallets = wallets.length > 0 ? wallets : fallbackWallets;
 
   return (
     <AnimatePresence>
@@ -139,7 +135,8 @@ export default function WalletModal({ open, onClose }: Props) {
                   const name = w.adapter.name;
                   const isConnecting = connecting_to === name;
                   const isInstalled = w.adapter.readyState === "Installed" || w.adapter.readyState === "Loadable";
-                  const iconUrl = WALLET_ICONS[name];
+                  // Use the icon bundled with each adapter (base64 data URI) — no external URLs
+                  const iconUrl = (w.adapter as any).icon ?? "";
 
                   return (
                     <motion.button
@@ -162,10 +159,10 @@ export default function WalletModal({ open, onClose }: Props) {
                       onMouseEnter={e => { if (!connecting_to) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; } }}
                       onMouseLeave={e => { if (!connecting_to) { e.currentTarget.style.background = isConnecting ? "rgba(139,92,246,0.1)" : "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = isConnecting ? "rgba(139,92,246,0.35)" : "var(--border)"; } }}
                     >
-                      {/* Icon */}
+                      {/* Icon — uses adapter's built-in base64 icon */}
                       <div style={{ width: 38, height: 38, borderRadius: 10, overflow: "hidden", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         {iconUrl ? (
-                          <img src={iconUrl} alt={name} style={{ width: 28, height: 28, objectFit: "contain" }} onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                          <img src={iconUrl} alt={name} style={{ width: 28, height: 28, objectFit: "contain" }} />
                         ) : (
                           <span style={{ fontSize: 16 }}>👛</span>
                         )}
@@ -182,7 +179,7 @@ export default function WalletModal({ open, onClose }: Props) {
                         </p>
                       </div>
 
-                      {/* Right */}
+                      {/* Right indicator */}
                       {isConnecting ? (
                         <svg className="animate-spin-slow" style={{ width: 16, height: 16, flexShrink: 0 }} viewBox="0 0 16 16" fill="none">
                           <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.15)" strokeWidth="2" />
