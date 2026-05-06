@@ -1,161 +1,161 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, Activity, CheckCircle } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import WalletButton from "./WalletButton";
 import Link from "next/link";
-
-const HOW_IT_WORKS = [
-  {
-    step: "01",
-    title: "Connect your Solana wallet",
-    desc: "Phantom, Solflare, or any Solana wallet. Read-only — no signing required.",
-  },
-  {
-    step: "02",
-    title: "We verify your on-chain history",
-    desc: "Transaction count, DeFi activity, NFTs, programs — all pulled from mainnet.",
-  },
-  {
-    step: "03",
-    title: "Get your identity card + URL",
-    desc: "Share onchaincv.xyz/yourhandle. Your reputation, in one link.",
-  },
-];
-
-const PERKS = [
-  "Verified against 2.4M+ Solana wallets",
-  "Activity tier badge — Top 1%, 5%, 10%",
-  "Program breakdown — Jupiter, Magic Eden & more",
-  "Shareable identity URL for early adopters",
-];
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "var(--bg)" }}>
 
-      {/* Nav */}
-      <motion.nav
-        initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-        className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: "1px solid var(--border)" }}
-      >
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: "var(--accent)" }}>
-            <Activity size={14} color="white" strokeWidth={2.5} />
-          </div>
-          <span className="font-bold text-sm tracking-tight" style={{ color: "var(--text-primary)" }}>
-            OnChainCV
-          </span>
-        </div>
+      {/* ── Nav ── */}
+      <nav className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
+        <span className="font-semibold text-sm tracking-tight" style={{ color: "var(--text)" }}>
+          OnChain<span style={{ color: "var(--accent2)" }}>CV</span>
+        </span>
         <div className="flex items-center gap-3">
           <Link href="/leaderboard">
-            <span className="text-xs font-medium transition-colors hover:opacity-70" style={{ color: "var(--text-muted)", cursor: "pointer" }}>
-              Leaderboard
-            </span>
+            <button className="btn-ghost">Leaderboard</button>
           </Link>
-          <WalletButton className="btn-outline text-xs">Connect</WalletButton>
+          <WalletButton className="btn-ghost" style={{ color: "var(--text)", borderColor: "rgba(255,255,255,0.15)" }}>
+            Connect
+          </WalletButton>
         </div>
-      </motion.nav>
+      </nav>
 
-      {/* Hero */}
-      <div className="flex-1 flex flex-col px-5 pt-12 pb-10 max-w-sm mx-auto w-full">
+      {/* ── Hero ── */}
+      <div className="flex flex-col items-center justify-center flex-1 px-6 text-center"
+        style={{ paddingTop: "72px", paddingBottom: "72px" }}>
 
-        {/* Tag */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.35 }}
-          className="mb-6">
+        {/* Live pill */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          style={{ marginBottom: "32px" }}
+        >
           <span className="badge badge-green">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34D399", display: "inline-block" }} />
             Live on Solana
           </span>
         </motion.div>
 
         {/* Headline */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}
-          className="mb-4">
-          <h1 className="font-bold leading-tight" style={{ fontSize: "2rem", letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
-            Claim your name.<br />
-            <span style={{ color: "var(--accent-light)" }}>Own your identity.</span>
-          </h1>
-        </motion.div>
+        <motion.h1
+          className="serif"
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.55 }}
+          style={{
+            fontSize: "clamp(2.6rem, 9vw, 3.8rem)",
+            lineHeight: 1.1,
+            color: "var(--text)",
+            maxWidth: "380px",
+            marginBottom: "24px",
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Your wallet
+          <br />
+          <em style={{ color: "var(--accent2)", fontStyle: "italic" }}>is your CV.</em>
+        </motion.h1>
 
-        {/* Sub */}
-        <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.35 }}
-          className="mb-8 leading-relaxed" style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
-          Connect your Solana wallet and get a verified on-chain CV — your transaction history, activity tier, and a shareable identity URL. All from your wallet.
+        {/* Sub — one line max */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          style={{
+            fontSize: "16px",
+            color: "var(--muted)",
+            maxWidth: "300px",
+            lineHeight: "1.6",
+            marginBottom: "48px",
+          }}
+        >
+          Connect your Solana wallet and get a verified on-chain identity card in seconds.
         </motion.p>
 
-        {/* Claim box */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}
-          className="card p-5 mb-6">
-          <p className="font-semibold mb-3 text-sm" style={{ color: "var(--text-primary)" }}>Claim your name</p>
-          <div className="flex items-center gap-0 mb-3 rounded-lg overflow-hidden"
-            style={{ border: "1px solid var(--border)", background: "var(--bg-input)" }}>
-            <span className="px-3 py-2.5 text-sm font-medium flex-shrink-0"
-              style={{ color: "var(--text-dim)", borderRight: "1px solid var(--border)" }}>
-              onchaincv.xyz/
-            </span>
-            <input
-              type="text"
-              placeholder="yourname"
-              className="flex-1 bg-transparent px-3 py-2.5 text-sm outline-none"
-              style={{ color: "var(--text-primary)", fontFamily: "Inter, sans-serif" }}
-            />
-          </div>
-          <p className="text-xs mb-4" style={{ color: "var(--text-dim)" }}>
-            + another name — claim multiple names at once
-          </p>
-          <WalletButton className="btn-primary">
-            Connect Wallet to Claim
+        {/* CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22, duration: 0.45 }}
+          style={{ width: "100%", maxWidth: "280px", marginBottom: "64px" }}
+        >
+          <WalletButton className="btn btn-purple">
+            Connect Wallet <ArrowRight size={16} />
           </WalletButton>
-          <p className="text-center text-xs mt-3" style={{ color: "var(--text-dim)" }}>
-            Names cost $05 — $3.75 each depending on length
+          <p style={{ fontSize: "12px", color: "var(--dim)", marginTop: "12px" }}>
+            Read-only · No signing required
           </p>
         </motion.div>
 
-        {/* Perks list */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.35 }}
-          className="flex flex-col gap-2.5 mb-10">
-          {PERKS.map((p) => (
-            <div key={p} className="flex items-start gap-2.5">
-              <CheckCircle size={15} className="flex-shrink-0 mt-0.5" style={{ color: "var(--accent-light)" }} />
-              <span className="text-sm" style={{ color: "var(--text-muted)" }}>{p}</span>
+        {/* Stats row — minimal */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 0.35, duration: 0.5 }}
+          style={{
+            display: "flex",
+            gap: "40px",
+            paddingTop: "32px",
+            borderTop: "1px solid var(--border)",
+          }}
+        >
+          {[
+            { v: "2.4M+", l: "Wallets" },
+            { v: "180M+", l: "Transactions" },
+            { v: "< 3s",  l: "Verification" },
+          ].map(s => (
+            <div key={s.l} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+              <span style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em" }}>
+                {s.v}
+              </span>
+              <span style={{ fontSize: "12px", color: "var(--muted)" }}>{s.l}</span>
             </div>
           ))}
         </motion.div>
+      </div>
 
-        {/* Divider + how it works */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.4 }}>
-          <div className="divider mb-8" />
-          <p className="text-xs font-semibold uppercase tracking-widest mb-5" style={{ color: "var(--text-dim)" }}>
-            How it works
-          </p>
-          <div className="flex flex-col gap-4">
-            {HOW_IT_WORKS.map((h, i) => (
-              <motion.div key={h.step}
-                initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.35 + i * 0.07, duration: 0.35 }}
-                className="flex items-start gap-4">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-                  <span className="text-xs font-bold" style={{ color: "var(--accent-light)" }}>{h.step}</span>
-                </div>
-                <div>
-                  <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text-primary)" }}>{h.title}</p>
-                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{h.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Footer */}
-        <div className="divider mt-10 mb-5" />
-        <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: "var(--text-dim)" }}>© 2025 OnChainCV</span>
-          <span className="text-xs" style={{ color: "var(--text-dim)" }}>Built on Solana</span>
+      {/* ── 3 features — ultra clean ── */}
+      <div style={{ borderTop: "1px solid var(--border)", padding: "56px 24px" }}>
+        <div style={{ maxWidth: "340px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "40px" }}>
+          {[
+            {
+              num: "01",
+              title: "Verified identity",
+              body: "Every stat sourced directly from Solana mainnet.",
+            },
+            {
+              num: "02",
+              title: "Activity tier",
+              body: "Ranked Top 1%, 5%, or 10% against 2.4M wallets.",
+            },
+            {
+              num: "03",
+              title: "Your own URL",
+              body: "Share onchaincv.xyz/yourname with anyone.",
+            },
+          ].map((f, i) => (
+            <motion.div
+              key={f.num}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1, duration: 0.4 }}
+              style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}
+            >
+              <span className="serif" style={{ fontSize: "13px", color: "var(--accent2)", opacity: 0.6, paddingTop: "2px", minWidth: "20px" }}>
+                {f.num}
+              </span>
+              <div>
+                <p style={{ fontWeight: 600, fontSize: "15px", color: "var(--text)", marginBottom: "6px" }}>{f.title}</p>
+                <p style={{ fontSize: "14px", color: "var(--muted)", lineHeight: "1.6" }}>{f.body}</p>
+              </div>
+            </motion.div>
+          ))}
         </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ borderTop: "1px solid var(--border)", padding: "20px 24px", display: "flex", justifyContent: "space-between" }}>
+        <span style={{ fontSize: "12px", color: "var(--dim)" }}>© 2025 OnChainCV</span>
+        <span style={{ fontSize: "12px", color: "var(--dim)" }}>Built on Solana</span>
       </div>
     </div>
   );

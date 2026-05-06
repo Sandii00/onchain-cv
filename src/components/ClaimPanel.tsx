@@ -4,15 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { ArrowRight, X, CheckCircle2 } from "lucide-react";
 
-interface Props { handle?: string; }
-
-export default function ClaimPanel({ handle: defaultHandle = "" }: Props) {
+export default function ClaimPanel({ handle: def = "" }: { handle?: string }) {
   const [open, setOpen] = useState(false);
-  const [handle, setHandle] = useState(defaultHandle);
+  const [handle, setHandle] = useState(def);
   const [claimed, setClaimed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const slug = handle.trim().toLowerCase().replace(/\s+/g, "-");
 
-  const handleClaim = async () => {
+  const claim = async () => {
     if (!handle.trim()) return;
     setLoading(true);
     await new Promise(r => setTimeout(r, 1400));
@@ -20,114 +19,72 @@ export default function ClaimPanel({ handle: defaultHandle = "" }: Props) {
     setClaimed(true);
   };
 
-  const slug = handle.trim().toLowerCase().replace(/\s+/g, "-");
-
   return (
     <>
-      {/* Trigger */}
       <button onClick={() => setOpen(true)}
-        className="card card-hover w-full flex items-center justify-between px-4 py-3.5 text-left"
-        style={{ cursor: "pointer" }}>
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px", background: "var(--bg-raised)", border: "1px solid var(--border)", borderRadius: 14, cursor: "pointer", textAlign: "left", transition: "border-color 0.15s" }}
+        onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)")}
+        onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}>
         <div>
-          <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text-primary)" }}>
-            Claim your Identity URL
-          </p>
-          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            onchaincv.xyz/<span style={{ color: "var(--accent-light)" }}>{slug || "yourhandle"}</span>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Claim your identity URL</p>
+          <p style={{ fontSize: 13, color: "var(--muted)" }}>
+            onchaincv.xyz/<span style={{ color: "var(--accent2)" }}>{slug || "yourhandle"}</span>
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="badge badge-gold">Early</span>
-          <ArrowRight size={14} style={{ color: "var(--text-dim)" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <span className="badge badge-gold" style={{ fontSize: 11 }}>Early</span>
+          <ArrowRight size={15} style={{ color: "var(--dim)" }} />
         </div>
       </button>
 
       <AnimatePresence>
         {open && (
           <>
-            {/* Backdrop */}
-            <motion.div className="fixed inset-0 z-40"
-              style={{ background: "rgba(0,0,0,0.75)" }}
+            <motion.div className="fixed inset-0 z-40" style={{ background: "rgba(0,0,0,0.8)" }}
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => !loading && setOpen(false)} />
-
-            {/* Sheet */}
-            <motion.div className="fixed bottom-0 left-0 right-0 z-50 p-4"
+            <motion.div className="fixed bottom-0 left-0 right-0 z-50" style={{ padding: "16px" }}
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 350, damping: 35 }}>
-              <div className="w-full max-w-sm mx-auto card overflow-hidden">
-                {/* Drag handle */}
-                <div className="flex justify-center pt-3">
-                  <div className="w-8 h-1 rounded-full" style={{ background: "var(--border-light)" }} />
+              transition={{ type: "spring", stiffness: 340, damping: 34 }}>
+              <div style={{ maxWidth: 380, margin: "0 auto", background: "var(--bg-raised)", border: "1px solid var(--border)", borderRadius: 20, overflow: "hidden" }}>
+                <div style={{ display: "flex", justifyContent: "center", paddingTop: 12 }}>
+                  <div style={{ width: 32, height: 4, borderRadius: 99, background: "var(--border)" }} />
                 </div>
-
-                <div className="p-5 flex flex-col gap-4">
+                <div style={{ padding: "20px 22px 28px", display: "flex", flexDirection: "column", gap: 18 }}>
                   {!claimed ? (
                     <>
-                      <div className="flex items-start justify-between">
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                         <div>
-                          <h3 className="font-bold text-base mb-1" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                            Claim your Identity URL
-                          </h3>
-                          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                            Free for the first 500 users · 487 spots left
-                          </p>
+                          <h3 className="serif" style={{ fontSize: "1.3rem", color: "var(--text)", marginBottom: 4 }}>Claim your URL</h3>
+                          <p style={{ fontSize: 13, color: "var(--muted)" }}>Free · 487 of 500 spots left</p>
                         </div>
-                        <button onClick={() => setOpen(false)}
-                          className="w-7 h-7 rounded-lg flex items-center justify-center"
-                          style={{ background: "var(--bg-input)", border: "1px solid var(--border)", cursor: "pointer" }}>
-                          <X size={13} style={{ color: "var(--text-muted)" }} />
+                        <button onClick={() => setOpen(false)} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)", borderRadius: 8, width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                          <X size={13} style={{ color: "var(--muted)" }} />
                         </button>
                       </div>
 
                       {/* URL preview */}
-                      <div className="flex items-center gap-0 rounded-lg overflow-hidden"
-                        style={{ border: "1px solid var(--border)", background: "var(--bg-input)" }}>
-                        <span className="px-3 py-2.5 text-xs font-medium flex-shrink-0"
-                          style={{ color: "var(--text-dim)", borderRight: "1px solid var(--border)" }}>
-                          onchaincv.xyz/
-                        </span>
-                        <span className="px-3 py-2.5 text-xs font-semibold" style={{ color: "var(--accent-light)" }}>
-                          {slug || "yourhandle"}
-                        </span>
+                      <div style={{ display: "flex", alignItems: "center", background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 10, padding: "10px 14px", gap: 4 }}>
+                        <span style={{ fontSize: 13, color: "var(--muted)", fontFamily: "monospace" }}>onchaincv.xyz/</span>
+                        <span style={{ fontSize: 13, color: "var(--accent2)", fontFamily: "monospace", fontWeight: 600 }}>{slug || "yourhandle"}</span>
                       </div>
 
-                      {/* Input */}
-                      <input
-                        className="input"
-                        type="text"
-                        placeholder="Choose your handle"
-                        value={handle}
-                        onChange={e => setHandle(e.target.value)}
-                        maxLength={30}
-                      />
+                      <input className="input" placeholder="yourhandle" value={handle} onChange={e => setHandle(e.target.value)} maxLength={30} />
 
-                      {/* CTA */}
-                      <button onClick={handleClaim} disabled={!handle.trim() || loading}
-                        className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed">
-                        {loading ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <svg className="animate-spin-slow w-3.5 h-3.5" viewBox="0 0 16 16" fill="none">
-                              <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,0.2)" strokeWidth="2" />
-                              <path d="M8 2a6 6 0 0 1 6 6" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                            Reserving…
-                          </span>
-                        ) : "Claim Free URL →"}
+                      <button onClick={claim} disabled={!handle.trim() || loading}
+                        className="btn btn-purple" style={{ opacity: !handle.trim() || loading ? 0.4 : 1, cursor: !handle.trim() || loading ? "not-allowed" : "pointer" }}>
+                        {loading ? "Reserving…" : "Claim Free URL →"}
                       </button>
                     </>
                   ) : (
-                    <motion.div className="flex flex-col items-center gap-4 py-3 text-center"
-                      initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 24 }}>
-                      <CheckCircle2 size={36} style={{ color: "#4ADE80" }} />
+                    <motion.div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "12px 0", textAlign: "center" }}
+                      initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }}>
+                      <CheckCircle2 size={40} style={{ color: "#34D399" }} />
                       <div>
-                        <p className="font-bold text-base" style={{ color: "var(--text-primary)" }}>Handle claimed!</p>
-                        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-                          Live at <span style={{ color: "var(--accent-light)" }}>onchaincv.xyz/{slug}</span>
-                        </p>
+                        <p className="serif" style={{ fontSize: "1.3rem", color: "var(--text)", marginBottom: 6 }}>Done!</p>
+                        <p style={{ fontSize: 14, color: "var(--muted)" }}>Live at <span style={{ color: "var(--accent2)" }}>onchaincv.xyz/{slug}</span></p>
                       </div>
-                      <button onClick={() => setOpen(false)} className="btn-outline w-full">Done</button>
+                      <button onClick={() => setOpen(false)} className="btn" style={{ background: "var(--border)", color: "var(--text)", width: "100%" }}>Close</button>
                     </motion.div>
                   )}
                 </div>
