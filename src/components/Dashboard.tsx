@@ -16,7 +16,7 @@ function FI({ d = 0, children }: { d?: number; children: React.ReactNode }) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ stale }: { stale?: boolean }) {
   const { disconnect, publicKey } = useWallet();
   const { data, loading } = useOnChainData(publicKey);
   const addr = publicKey?.toBase58() ?? "";
@@ -26,8 +26,16 @@ export default function Dashboard() {
 
       {/* Nav */}
       <nav className="flex items-center justify-between px-6 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
-        <span className="font-semibold text-sm" style={{ color: "var(--text)" }}>
+        <span className="font-semibold text-sm flex items-center gap-2" style={{ color: "var(--text)" }}>
           OnChain<span style={{ color: "var(--accent2)" }}>CV</span>
+          {stale && (
+            <span style={{ fontSize: 10, color: "var(--dim)", display: "flex", alignItems: "center", gap: 4 }}>
+              <svg style={{ width: 8, height: 8, animation: "spin 1s linear infinite" }} viewBox="0 0 8 8" fill="none">
+                <circle cx="4" cy="4" r="3" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8" strokeDashoffset="4" />
+              </svg>
+              syncing
+            </span>
+          )}
         </span>
         <div className="flex items-center gap-2">
           <Link href="/leaderboard">
