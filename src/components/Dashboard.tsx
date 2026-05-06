@@ -18,6 +18,7 @@ function FI({ d = 0, children }: { d?: number; children: React.ReactNode }) {
 
 export default function Dashboard({ stale }: { stale?: boolean }) {
   const { disconnect, publicKey } = useWallet();
+  // Re-uses the same hook — de-duplicated fetch, will return cached result instantly
   const { data, loading } = useOnChainData(publicKey);
   const addr = publicKey?.toBase58() ?? "";
 

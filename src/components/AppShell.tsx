@@ -1,8 +1,8 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useEffect, useRef, useState } from "react";
-import { useOnChainData } from "@/hooks/useOnChainData";
+import { useEffect, useState } from "react";
+import { useOnChainData, fetchOnChainData, readCache } from "@/hooks/useOnChainData";
 import LandingPage from "./LandingPage";
 import LoadingState from "./LoadingState";
 import Dashboard from "./Dashboard";
@@ -14,44 +14,46 @@ function isInsideWalletBrowser(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as any;
   return !!(
-    w.solana?.isPhantom  ||
-    w.phantom?.solana    ||
-    w.backpack?.solana   ||
+    w.solana?.isPhantom    ||
+    w.phantom?.solana      ||
+    w.backpack?.solana     ||
     w.solflare?.isSolflare ||
-    w.exodus?.solana     ||
-    w.coinbaseSolana     ||
+    w.exodus?.solana       ||
+    w.coinbaseSolana       ||
     w.solana?.isConnected !== undefined
   );
 }
 
 export default function AppShell() {
   const { connected, connecting, publicKey } = useWallet();
-  const { data, loading: dataLoading, stale, prefetch } = useOnChainData(
+  const { data, loading: dataLoading, stale } = useOnChainData(
     connected ? publicKey : null
   );
-
   const [state, setState] = useState<State>("landing");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Client-only: wallet browser skips landing
+  // Client-only: skip landing inside wallet browsers
   useEffect(() => {
     if (isInsideWalletBrowser()) setState("loading");
   }, []);
 
-  // ── Optimisation 3: pre-fetch the moment publicKey is known ──
-  // This fires BEFORE connected=true, as soon as wallet provides a key
+  // Pre-fetch the MOMENT publicKey is available — before connected=true
+  // This gives us a head start of ~200-400ms
   useEffect(() => {
-    if (publicKey) prefetch(publicKey);
+    if (publicKey) {
+      const address = publicKey.toBase58();
+      // Only pre-fetch if not already cached
+      if (!readCache(address)) {
+        fetchOnChainData(address).catch(() => {});
+      }
+    }
   }, [publicKey?.toBase58()]);
 
   useEffect(() => {
-    if (timer.current) clearTimeout(timer.current);
-
     if (connecting) { setState("loading"); return; }
 
     if (connected) {
-      // If we already have cached data — go straight to dashboard
-      if (data && !dataLoading) {
+      // Already have data (cache hit) → skip loading screen entirely
+      if (data) {
         setState("dashboard");
       } else {
         setState("loading");
@@ -59,9 +61,7 @@ export default function AppShell() {
     } else {
       if (!isInsideWalletBrowser()) setState("landing");
     }
-
-    return () => { if (timer.current) clearTimeout(timer.current); };
-  }, [connected, connecting]);
+  }, [connected, connecting, data]);
 
   // Transition to dashboard as soon as data arrives
   useEffect(() => {
@@ -90,7 +90,6 @@ export default function AppShell() {
       )}
       {state === "dashboard" && (
         <motion.div key="dashboard" {...variants} transition={{ duration: 0.35 }}>
-          {/* stale = cached data showing, bg refresh running */}
           <Dashboard stale={stale} />
         </motion.div>
       )}
