@@ -12,6 +12,7 @@ export interface OnChainData {
   defiTxs: number;
   nftTxs: number;
   programsInteracted: number;
+  solBalance?: number;
 }
 
 export const MOCK_DATA: OnChainData = {
