@@ -5,6 +5,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useOnChainData } from "@/hooks/useOnChainData";
 import CVCard from "./CVCard";
 import ClaimPanel from "./ClaimPanel";
+import MintNFT from "./MintNFT";
 import { Trophy, LogOut, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
@@ -115,8 +116,11 @@ export default function Dashboard({ stale: staleProp }: { stale?: boolean }) {
           </FI>
         )}
 
+        {/* Mint NFT */}
+        <FI d={0.26}><MintNFT data={data} /></FI>
+
         {/* Claim */}
-        <FI d={0.28}><ClaimPanel handle={addr.slice(0, 8).toLowerCase()} /></FI>
+        <FI d={0.32}><ClaimPanel handle={addr.slice(0, 8).toLowerCase()} /></FI>
 
         {/* Solscan */}
         {addr && (

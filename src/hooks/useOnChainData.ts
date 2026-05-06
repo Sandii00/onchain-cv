@@ -88,7 +88,7 @@ export async function fetchOnChainData(address: string): Promise<OnChainData> {
 
   const promise = (async () => {
     const apiKey = process.env.NEXT_PUBLIC_HELIUS_API_KEY;
-    if (!apiKey) return MOCK_DATA;
+    if (!apiKey) return buildInstantData(null);
 
     const res = await fetch(`/api/onchain/${address}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -142,9 +142,9 @@ export function useOnChainData(publicKey: PublicKey | null) {
       setStale(false);
       fetchedFor.current = address;
     }).catch(() => {
-      // Keep showing instant data, just stop the stale indicator
+      // Don't show fake mock data — keep showing instant zeros
       setStale(false);
-      setError("Could not load full metrics");
+      setError("Could not load metrics");
     });
 
   }, [publicKey?.toBase58()]);
