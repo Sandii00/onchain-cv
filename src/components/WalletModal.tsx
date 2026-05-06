@@ -34,9 +34,10 @@ export default function WalletModal({ open, onClose }: Props) {
     setConnectingTo(name);
 
     // On mobile — use deep link if available
+    // Use window.open(_blank) to avoid Chrome's iframe cross-origin deep-link block
     if (isMobile && MOBILE_DEEPLINKS[name]) {
       const currentUrl = window.location.href;
-      window.location.href = MOBILE_DEEPLINKS[name](currentUrl);
+      window.open(MOBILE_DEEPLINKS[name](currentUrl), "_blank", "noopener,noreferrer");
       onClose();
       return;
     }
