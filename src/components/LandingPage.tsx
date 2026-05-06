@@ -1,159 +1,200 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Zap, Shield, Award } from "lucide-react";
+import { ArrowRight, Activity, Shield, TrendingUp, Link2 } from "lucide-react";
 import WalletButton from "./WalletButton";
 
+const STATS = [
+  { value: "2.4M+", label: "Wallets indexed" },
+  { value: "180M+", label: "Transactions parsed" },
+  { value: "< 3s",  label: "Verification time" },
+];
+
+const FEATURES = [
+  {
+    icon: <Shield size={15} />,
+    title: "Cryptographically verified",
+    desc: "Sourced directly from Solana mainnet. Zero third-party trust.",
+  },
+  {
+    icon: <TrendingUp size={15} />,
+    title: "Activity tier ranking",
+    desc: "Ranked against 2.4M wallets. Top 1%, 5%, or 10% — on-chain.",
+  },
+  {
+    icon: <Link2 size={15} />,
+    title: "Portable identity URL",
+    desc: "One link that carries your entire on-chain reputation.",
+  },
+];
+
 export default function LandingPage() {
-
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{ padding: "48px 24px" }}
-    >
-      {/* Background blobs */}
-      <div
-        className="absolute top-[-140px] left-[-100px] w-[420px] h-[420px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%)",
-          filter: "blur(40px)",
-        }}
-      />
-      <div
-        className="absolute bottom-[-120px] right-[-80px] w-[360px] h-[360px] rounded-full pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(6,182,212,0.14), transparent 70%)",
-          filter: "blur(40px)",
-        }}
-      />
+    <div className="min-h-screen grid-bg relative overflow-hidden flex flex-col" style={{ background: "var(--bg)" }}>
 
-      <motion.div
-        className="w-full flex flex-col items-center text-center z-10"
-        style={{ maxWidth: "400px", gap: "36px" }}
-        initial="hidden"
-        animate="visible"
-        variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.13 } } }}
+      {/* Glow blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div style={{
+          position: "absolute", top: "-180px", left: "50%", transform: "translateX(-50%)",
+          width: "600px", height: "500px", borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(124,58,237,0.13) 0%, transparent 65%)",
+        }} />
+        <div style={{
+          position: "absolute", bottom: "-120px", right: "-80px",
+          width: "380px", height: "380px", borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(6,182,212,0.07) 0%, transparent 65%)",
+        }} />
+      </div>
+
+      {/* Nav */}
+      <motion.nav
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}
+        className="relative z-10 flex items-center justify-between px-5 py-4"
+        style={{ borderBottom: "1px solid var(--border)" }}
       >
-        {/* Badge */}
-        <motion.div
-          variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase"
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, #7C3AED, #06B6D4)" }}>
+            <Activity size={13} color="white" strokeWidth={2.5} />
+          </div>
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
+            OnChain<span style={{ color: "#9D6FFF" }}>CV</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <a href="/leaderboard" className="text-xs font-medium transition-colors hover:opacity-80"
+            style={{ color: "var(--text-muted)" }}>
+            Leaderboard
+          </a>
+          <WalletButton
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all active:scale-95"
             style={{
-              background: "rgba(124,58,237,0.1)",
-              border: "1px solid rgba(124,58,237,0.25)",
-              color: "#7C3AED",
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              color: "var(--text-primary)",
+              cursor: "pointer",
             }}
           >
-            <Zap size={11} fill="#7C3AED" strokeWidth={0} />
-            Powered by Solana
+            Connect
+          </WalletButton>
+        </div>
+      </motion.nav>
+
+      {/* Hero */}
+      <div className="relative z-10 flex flex-col items-center justify-center flex-1 px-5 py-14 text-center">
+
+        {/* Live badge */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.4 }}
+          className="mb-7">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium"
+            style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: "#10B981" }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
+            Live on Solana Mainnet
           </div>
         </motion.div>
 
         {/* Headline */}
-        <motion.div
-          className="flex flex-col"
-          style={{ gap: "16px" }}
-          variants={{ hidden: { opacity: 0, y: 24 }, visible: { opacity: 1, y: 0 } }}
-          transition={{ duration: 0.55, ease: "easeOut" }}
+        <motion.h1
+          initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.45 }}
+          className="font-semibold mb-5"
+          style={{
+            fontSize: "clamp(1.9rem, 7vw, 2.9rem)",
+            lineHeight: 1.08,
+            letterSpacing: "-0.035em",
+            maxWidth: "480px",
+            color: "var(--text-primary)",
+          }}
         >
-          <h1
-            className="font-display font-extrabold tracking-tight"
-            style={{
-              fontSize: "clamp(2.4rem, 8vw, 3.2rem)",
-              lineHeight: "1.08",
-              color: "var(--text-primary)",
-            }}
-          >
-            Your Verified
-            <br />
-            <span
-              style={{
-                background: "linear-gradient(90deg, #7C3AED 0%, #06B6D4 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              On-Chain Identity
-            </span>
-          </h1>
-          <p
-            style={{
-              fontSize: "1rem",
-              lineHeight: "1.7",
-              color: "var(--text-muted)",
-              maxWidth: "320px",
-              margin: "0 auto",
-            }}
-          >
-            Connect your Solana wallet and get a beautiful, shareable CV built entirely from your on-chain history.
-          </p>
-        </motion.div>
+          Your on-chain history,
+          <br />
+          <span style={{
+            background: "linear-gradient(90deg, #9D6FFF 10%, #06B6D4 90%)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          }}>
+            turned into a resume.
+          </span>
+        </motion.h1>
 
-        {/* Feature pills — stacked, not inline */}
-        <motion.div
-          className="flex flex-col"
-          style={{ gap: "10px", width: "100%" }}
-          variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+        {/* Sub */}
+        <motion.p
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4 }}
+          className="mb-9 leading-relaxed"
+          style={{ fontSize: "0.875rem", color: "var(--text-muted)", maxWidth: "340px" }}
         >
-          {[
-            { icon: <Shield size={14} />, label: "Verified on-chain — no third party" },
-            { icon: <Award size={14} />, label: "Activity tier badge based on real data" },
-            { icon: <Zap size={14} />, label: "Claim your instant identity URL" },
-          ].map((f) => (
-            <div
-              key={f.label}
-              className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.65)",
-                border: "1px solid rgba(0,0,0,0.06)",
-                color: "var(--text-muted)",
-                fontSize: "0.83rem",
-                fontWeight: 500,
-              }}
-            >
-              <span style={{ color: "var(--accent)", flexShrink: 0 }}>{f.icon}</span>
-              {f.label}
-            </div>
-          ))}
-        </motion.div>
+          Connect your wallet. Get a verified identity card ranked against 2.4M Solana wallets — shareable in one link.
+        </motion.p>
 
         {/* CTA */}
         <motion.div
-          style={{ width: "100%" }}
-          variants={{ hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1 } }}
-          transition={{ duration: 0.45, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.4 }}
+          className="flex flex-col items-center gap-3 w-full" style={{ maxWidth: "300px" }}
         >
           <WalletButton
-            className="w-full font-semibold text-white transition-all duration-200 active:scale-[0.97]"
+            className="w-full flex items-center justify-center gap-2 font-semibold text-sm text-white transition-all active:scale-[0.98]"
             style={{
-              padding: "18px 24px",
-              borderRadius: "18px",
-              fontSize: "1rem",
-              letterSpacing: "-0.01em",
-              background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 55%, #0891B2 100%)",
-              boxShadow: "0 10px 40px rgba(124,58,237,0.38), 0 2px 4px rgba(0,0,0,0.1)",
+              padding: "13px 24px",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #7C3AED, #5B21B6 50%, #0891B2)",
+              boxShadow: "0 0 0 1px rgba(124,58,237,0.35), 0 8px 28px rgba(124,58,237,0.28)",
               border: "none",
               cursor: "pointer",
             }}
           >
-            Connect Wallet
+            Connect Wallet <ArrowRight size={14} />
           </WalletButton>
+          <p className="text-xs" style={{ color: "var(--text-dim)" }}>
+            Non-custodial · Read-only · No signing required
+          </p>
         </motion.div>
 
-        {/* Footer note */}
-        <motion.p
-          style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "-12px" }}
-          variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-          transition={{ duration: 0.5 }}
+        {/* Stats */}
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
+          className="flex items-center gap-8 mt-12 pt-8"
+          style={{ borderTop: "1px solid var(--border)" }}
         >
-          Non-custodial · Read-only · No signing required
-        </motion.p>
-      </motion.div>
+          {STATS.map(s => (
+            <div key={s.label} className="flex flex-col items-center gap-0.5">
+              <span className="text-sm font-semibold tracking-tight" style={{ color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                {s.value}
+              </span>
+              <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>{s.label}</span>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* Features */}
+      <div className="relative z-10 px-5 pb-14" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="max-w-sm mx-auto pt-8 flex flex-col gap-2">
+          <p className="text-[11px] font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--text-dim)" }}>
+            What you get
+          </p>
+          {FEATURES.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 + i * 0.07, duration: 0.4 }}
+              className="surface surface-hover flex items-start gap-3.5 p-4"
+            >
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "#9D6FFF" }}>
+                {f.icon}
+              </div>
+              <div>
+                <p className="text-sm font-semibold mb-0.5" style={{ color: "var(--text-primary)" }}>{f.title}</p>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{f.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="relative z-10 px-5 py-4 flex items-center justify-between"
+        style={{ borderTop: "1px solid var(--border)" }}>
+        <span className="text-xs" style={{ color: "var(--text-dim)" }}>© 2025 OnChainCV</span>
+        <span className="text-xs" style={{ color: "var(--text-dim)" }}>Built on Solana</span>
+      </div>
     </div>
   );
 }

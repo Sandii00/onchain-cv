@@ -3,121 +3,97 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
-import { Copy, Check, RotateCcw } from "lucide-react";
+import { Copy, Check, RotateCw } from "lucide-react";
 import type { OnChainData } from "@/hooks/useOnChainData";
 
-interface Props {
-  data: OnChainData | null;
-}
+interface Props { data: OnChainData | null; }
 
-function truncate(addr: string) {
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
+function truncate(addr: string) { return `${addr.slice(0, 6)}···${addr.slice(-4)}`; }
 
 export default function CVCard({ data }: Props) {
   const { publicKey } = useWallet();
   const [copied, setCopied] = useState(false);
   const [flipped, setFlipped] = useState(false);
 
-  const displayAddress = publicKey
-    ? truncate(publicKey.toBase58())
-    : "7xKqBz...4mNp";
+  const display = publicKey ? truncate(publicKey.toBase58()) : "7xKqBz···4mNp";
+  const full = publicKey?.toBase58() ?? "7xKqBz9fR3pL4mNpRy8W";
 
   const handleCopy = () => {
-    const addr = publicKey?.toBase58() ?? "7xKqBz9...4mNpRy8W";
-    navigator.clipboard.writeText(addr);
+    navigator.clipboard.writeText(full);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const d = data;
+  const colors = ["#9D6FFF", "#06B6D4", "#F59E0B", "#10B981"];
 
   return (
     <motion.div
-      className="w-full max-w-sm mx-auto"
-      initial={{ opacity: 0, y: 30, scale: 0.96 }}
+      className="w-full"
+      initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
-      <div className="card-scene" style={{ minHeight: "200px" }}>
+      <div className="card-scene" style={{ minHeight: "176px" }}>
         <div className={`card-flipper ${flipped ? "flipped" : ""}`}>
 
           {/* ── FRONT ── */}
           <div className="card-face">
-            <div
-              className="relative overflow-hidden"
-              style={{
-                background: "var(--card-bg)",
-                borderRadius: "28px",
-                padding: "28px",
-                boxShadow: "0 24px 64px rgba(124,58,237,0.4), 0 4px 12px rgba(0,0,0,0.15)",
-                minHeight: "200px",
-              }}
-            >
-              {/* shimmer */}
+            <div className="cv-card relative overflow-hidden p-5" style={{ minHeight: "176px" }}>
+              {/* Shimmer */}
               <div className="absolute inset-0 pointer-events-none" style={{
-                background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)",
-                borderRadius: "28px",
+                background: "linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.04) 50%, transparent 65%)",
+                borderRadius: "20px",
               }} />
-              {/* circles */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.06)" }} />
-              <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.04)" }} />
+              {/* Orbs */}
+              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+                style={{ background: "radial-gradient(circle, rgba(124,58,237,0.2), transparent)" }} />
+              <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full pointer-events-none"
+                style={{ background: "radial-gradient(circle, rgba(6,182,212,0.12), transparent)" }} />
 
-              <div className="relative z-10 flex flex-col gap-5">
+              <div className="relative z-10 flex flex-col gap-4">
                 {/* Top row */}
                 <div className="flex items-start justify-between">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs font-medium tracking-widest uppercase text-white/60">OnChain CV</span>
-                    <span className="font-display text-lg font-bold text-white leading-tight">Solana Identity</span>
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-widest mb-0.5"
+                      style={{ color: "rgba(255,255,255,0.35)" }}>OnChain CV · Solana</p>
+                    <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>
+                      Identity Card
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {/* Flip button */}
-                    <button
-                      onClick={() => setFlipped(true)}
-                      className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
-                      style={{ background: "rgba(255,255,255,0.12)" }}
-                      title="See stats"
-                    >
-                      <RotateCcw size={13} color="rgba(255,255,255,0.8)" />
-                    </button>
-                    {/* Solana logo */}
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }}>
-                      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                        <path d="M4 14.5h12l-4 3H4l4-3z" fill="white" fillOpacity="0.9"/>
-                        <path d="M4 8.5h12l-4 3H4l4-3z" fill="white"/>
-                        <path d="M8 2.5h8l-4 3H4l4-3z" fill="white" fillOpacity="0.7"/>
-                      </svg>
-                    </div>
-                  </div>
+                  <button onClick={() => setFlipped(true)}
+                    className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-all active:scale-95"
+                    style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+                    <RotateCw size={11} />
+                    Stats
+                  </button>
                 </div>
 
                 {/* Address */}
-                <button onClick={handleCopy} className="flex items-center gap-2 group">
-                  <span className="font-mono text-sm font-medium text-white/90 tracking-wider">{displayAddress}</span>
-                  <span className="text-white/40 group-hover:text-white/70 transition-colors">
-                    {copied ? <Check size={13} /> : <Copy size={13} />}
+                <button onClick={handleCopy} className="flex items-center gap-2 group" style={{ background: "none", border: "none", cursor: "pointer" }}>
+                  <span className="font-mono text-xs tracking-widest" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    {display}
+                  </span>
+                  <span style={{ color: copied ? "#10B981" : "rgba(255,255,255,0.25)" }} className="transition-colors group-hover:text-white">
+                    {copied ? <Check size={11} /> : <Copy size={11} />}
                   </span>
                 </button>
 
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.15)" }} />
+                {/* Divider */}
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.08)" }} />
 
-                {/* Stats */}
-                <div className="flex items-end justify-between">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-xs text-white/50 uppercase tracking-wider">Active since</span>
-                    <span className="text-white font-semibold text-sm">{d?.activeSince ?? "2021"}</span>
+                {/* Stats row */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Since</p>
+                    <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>{d?.activeSince ?? "2021"}</p>
                   </div>
-                  <div className="flex flex-col gap-0.5 items-center">
-                    <span className="text-xs text-white/50 uppercase tracking-wider">Total Txs</span>
-                    <span className="text-white font-semibold text-sm">{d?.totalTxs.toLocaleString() ?? "1,847"}</span>
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>Transactions</p>
+                    <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.9)" }}>{d?.totalTxs?.toLocaleString() ?? "1,847"}</p>
                   </div>
-                  <div
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                    style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.5)" }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill={d?.tierColor ?? "#F59E0B"}>
-                      <polygon points="5,1 6.2,3.8 9,3.8 6.8,5.7 7.6,8.5 5,6.8 2.4,8.5 3.2,5.7 1,3.8 3.8,3.8" />
-                    </svg>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md"
+                    style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.3)" }}>
                     <span className="text-xs font-bold" style={{ color: "#FCD34D" }}>{d?.tier ?? "Top 1%"}</span>
                   </div>
                 </div>
@@ -127,79 +103,61 @@ export default function CVCard({ data }: Props) {
 
           {/* ── BACK ── */}
           <div className="card-face card-back">
-            <div
-              className="relative overflow-hidden"
-              style={{
-                background: "linear-gradient(135deg, #0E7490 0%, #1D4ED8 50%, #4C1D95 100%)",
-                borderRadius: "28px",
-                padding: "28px",
-                boxShadow: "0 24px 64px rgba(14,116,144,0.4), 0 4px 12px rgba(0,0,0,0.15)",
-                minHeight: "200px",
-              }}
-            >
-              <div className="absolute -top-8 -left-8 w-36 h-36 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.05)" }} />
-              <div className="absolute -bottom-10 -right-10 w-44 h-44 rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.04)" }} />
+            <div className="cv-card relative overflow-hidden p-5" style={{
+              minHeight: "176px",
+              background: "linear-gradient(135deg, #051520 0%, #0A1A35 50%, #1A0A3D 100%)",
+            }}>
+              <div className="absolute -top-8 -left-8 w-32 h-32 rounded-full pointer-events-none"
+                style={{ background: "radial-gradient(circle, rgba(6,182,212,0.15), transparent)" }} />
 
               <div className="relative z-10 flex flex-col gap-4">
-                {/* Back header */}
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-widest text-white/60">Activity Breakdown</span>
-                  <button
-                    onClick={() => setFlipped(false)}
-                    className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:bg-white/20 active:scale-95"
-                    style={{ background: "rgba(255,255,255,0.12)" }}
-                  >
-                    <RotateCcw size={13} color="rgba(255,255,255,0.8)" style={{ transform: "scaleX(-1)" }} />
+                  <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.35)" }}>
+                    Activity Breakdown
+                  </p>
+                  <button onClick={() => setFlipped(false)}
+                    className="text-xs px-2.5 py-1 rounded-md transition-all active:scale-95"
+                    style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+                    ← Back
                   </button>
                 </div>
 
-                {/* Program bars */}
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-2.5">
                   {(d?.topPrograms ?? [
                     { name: "Jupiter", count: 312 },
                     { name: "Magic Eden", count: 187 },
                     { name: "Raydium", count: 144 },
                     { name: "Tensor", count: 98 },
                   ]).map((p, i) => {
-                    const max = d?.topPrograms[0]?.count ?? 312;
-                    const pct = Math.round((p.count / max) * 100);
+                    const max = d?.topPrograms?.[0]?.count ?? 312;
                     return (
-                      <div key={p.name} className="flex flex-col gap-1">
-                        <div className="flex justify-between items-center">
-                          <span className="text-xs font-medium text-white/80">{p.name}</span>
-                          <span className="text-xs text-white/50">{p.count} txs</span>
+                      <div key={p.name} className="flex items-center gap-3">
+                        <span className="text-xs w-20 flex-shrink-0" style={{ color: "rgba(255,255,255,0.6)" }}>{p.name}</span>
+                        <div className="flex-1 h-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }}>
+                          <div className="h-full rounded-full transition-all" style={{
+                            width: `${Math.round((p.count / max) * 100)}%`,
+                            background: colors[i],
+                          }} />
                         </div>
-                        <div className="h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.12)" }}>
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${pct}%`,
-                              background: ["#9D6FFF", "#22D3EE", "#FCD34D", "#34D399"][i] ?? "#fff",
-                              transition: "width 0.6s ease",
-                            }}
-                          />
-                        </div>
+                        <span className="text-xs font-mono w-8 text-right" style={{ color: "rgba(255,255,255,0.35)" }}>{p.count}</span>
                       </div>
                     );
                   })}
                 </div>
 
-                <div style={{ height: "1px", background: "rgba(255,255,255,0.12)" }} />
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
 
-                {/* Bottom row */}
                 <div className="flex justify-between">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[10px] text-white/50 uppercase tracking-wider">DeFi</span>
-                    <span className="text-white text-sm font-semibold">{d?.defiTxs ?? 823}</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5 items-center">
-                    <span className="text-[10px] text-white/50 uppercase tracking-wider">NFTs</span>
-                    <span className="text-white text-sm font-semibold">{d?.nftTxs ?? 412}</span>
-                  </div>
-                  <div className="flex flex-col gap-0.5 items-end">
-                    <span className="text-[10px] text-white/50 uppercase tracking-wider">Programs</span>
-                    <span className="text-white text-sm font-semibold">{d?.programsInteracted ?? 67}</span>
-                  </div>
+                  {[
+                    { l: "DeFi", v: d?.defiTxs ?? 823 },
+                    { l: "NFT", v: d?.nftTxs ?? 412 },
+                    { l: "Programs", v: d?.programsInteracted ?? 67 },
+                  ].map(s => (
+                    <div key={s.l}>
+                      <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: "rgba(255,255,255,0.3)" }}>{s.l}</p>
+                      <p className="text-sm font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>{s.v}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -207,15 +165,6 @@ export default function CVCard({ data }: Props) {
 
         </div>
       </div>
-
-      {/* Below card label */}
-      <motion.div className="mt-3 text-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-        <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-          Activity Tier ·{" "}
-          <span style={{ color: d?.tierColor ?? "var(--accent)", fontWeight: 600 }}>{d?.tier ?? "Top 1%"} on Solana</span>
-          <span style={{ color: "var(--text-muted)" }}> · tap <RotateCcw size={10} className="inline" /> to flip</span>
-        </span>
-      </motion.div>
     </motion.div>
   );
 }
