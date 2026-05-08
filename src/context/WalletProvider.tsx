@@ -29,7 +29,7 @@ const SolanaWalletProvider: FC<Props> = ({ children }) => {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={true} onError={(err) => console.warn("Wallet error:", err)}>
+      <WalletProvider wallets={wallets} autoConnect={false} onError={(err) => console.warn("Wallet error:", err)}>
         {children}
       </WalletProvider>
     </ConnectionProvider>

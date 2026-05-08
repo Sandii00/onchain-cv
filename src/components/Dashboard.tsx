@@ -19,6 +19,15 @@ function FI({ d = 0, children }: { d?: number; children: React.ReactNode }) {
 
 export default function Dashboard({ stale: staleProp }: { stale?: boolean }) {
   const { disconnect, publicKey } = useWallet();
+
+  const handleDisconnect = async () => {
+    await disconnect();
+    // Clear adapter's stored wallet selection so autoConnect can't re-fire
+    try {
+      localStorage.removeItem("walletName");
+      localStorage.removeItem("wallet-adapter-wallet-name");
+    } catch {}
+  };
   const { data, loading, stale } = useOnChainData(publicKey);
   const isInstant = data?.isInstant ?? false;
   const addr = publicKey?.toBase58() ?? "";
@@ -43,7 +52,7 @@ export default function Dashboard({ stale: staleProp }: { stale?: boolean }) {
           <Link href="/leaderboard">
             <button className="btn-ghost"><Trophy size={13} /></button>
           </Link>
-          <button className="btn-ghost" onClick={disconnect} style={{ color: "#F87171" }}>
+          <button className="btn-ghost" onClick={handleDisconnect} style={{ color: "#F87171" }}>
             <LogOut size={13} />
           </button>
         </div>

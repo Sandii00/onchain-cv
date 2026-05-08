@@ -28,6 +28,7 @@ export default function AppShell() {
   const { data, stale } = useOnChainData(connected ? publicKey : null);
   const [state, setState] = useState<State>("landing");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wasConnected = useRef(false);
 
   // Client-only: inside wallet browser — try to connect immediately
   useEffect(() => {
@@ -75,11 +76,15 @@ export default function AppShell() {
     if (connecting) { setState("loading"); return; }
 
     if (connected) {
+      wasConnected.current = true;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       setState("dashboard");
-    } else {
-      if (!isInsideWalletBrowser()) setState("landing");
+    } else if (wasConnected.current) {
+      // Only go back to landing if we were previously connected (i.e. user disconnected)
+      wasConnected.current = false;
+      setState("landing");
     }
+    // If never connected yet, don't override — wallet-browser effect controls initial state
   }, [connected, connecting]);
 
   const variants = {
